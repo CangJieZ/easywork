@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd 
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context.xsd 
+       http://www.springframework.org/schema/mvc 
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<!-- 对web包中的所有类进行扫描，以完成Bean创建和自动依赖注入的功能 -->
+	<context:component-scan base-package="easy.work.source">
+		<!-- 不装载service ,其它都装载 -->
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+
+
+	<!-- 对模型视图名称的解析,即在模型视图名称添加前后缀 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/front/moudle/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- 自定义拦截器 拦截器的执行是按配置的顺序来执行的 上一个返回true 时才会执行下一个拦截器 -->
+	<mvc:interceptors>
+		<!-- 全局请求拦截类 -->
+		<mvc:interceptor>
+			<!-- 需要拦截的规则 -->
+			<mvc:mapping path="/**" />
+			<bean class="easy.work.source.commom.intercept.BaseIntercept"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+		<!-- 全局异常拦截类 -->
+	<bean class="easy.work.source.commom.exception.AppHandlerExceptionResolver"
+		p:order="1" />
+	
+
+	<!-- 应用全局地址 -->
+	<bean id="appServer" class="easy.work.source.commom.server.AppServer">
+		<property name="protocol" value="${appServer.protocol}" />
+		<property name="host" value="${appServer.host}" />
+		<property name="port" value="${appServer.port}" />
+		<property name="project" value="${appServer.project}" />
+	</bean>
+
+</beans>
