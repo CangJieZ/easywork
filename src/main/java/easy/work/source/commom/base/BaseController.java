@@ -93,7 +93,6 @@ public class BaseController/* <T extends BaseModel> */ {
 	 * @return ModelAndView
 	 */
 	public ModelAndView getModelAndViewRedirect(String redirect) {
-
 		return new ModelAndView(redirect);
 	}
 

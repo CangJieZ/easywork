@@ -14,38 +14,52 @@
 <body>
 	<div>
 		<ul id="slide-out" class="side-nav">
-			<li>
-				<div class="userView">
-					<div class="background">
-						<img src="${appServer}/front/img/nav_bg.png">
-					</div>
-					<a href="#!user">
-						<img class="circle" src="">
-					</a>
-					<a href="#!name">
-						<span class="white-text name">张三</span>
-					</a>
-					<a href="#!email">
-						<span class="white-text email">jdandturk@sina.com</span>
-					</a>
-				</div>
-			</li>
-			<li>
-				<a href="#!">
-					<i data-activates="slide-out" name="xx" class="material-icons">cloud</i>带图标的第一链接
-				</a>
-			</li>
-			<li>
-				<a href="#!">第二链接</a>
-			</li>
-			<li>
-				<div class="divider"></div>
-			</li>
-			<li>
-				<a class="subheader">子标题</a>
-			</li>
-			<li>
-				<a class="waves-effect" href="#!">带波纹效果的第三链接</a>
+			<li class="no-padding">
+				<ul class="collapsible collapsible-accordion">
+					<li>
+						<a class="collapsible-header">
+							一级菜单<i class="material-icons">arrow_drop_down</i>
+						</a>
+						<div class="collapsible-body">
+							<ul>
+								<li>
+									<ul class="collapsible collapsible-accordion">
+										<li>
+											<a class="collapsible-header">
+												二级菜单<i class="material-icons">arrow_drop_down</i>
+											</a>
+											<div class="collapsible-body">
+												<ul>
+													<li>
+														<a href="#!">一</a>
+													</li>
+													<li>
+														<a href="#!">二</a>
+													</li>
+													<li>
+														<a href="#!">三</a>
+													</li>
+													<li>
+														<a href="#!">四</a>
+													</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</li>
+								<li>
+									<a href="#!">二</a>
+								</li>
+								<li>
+									<a href="#!">三</a>
+								</li>
+								<li>
+									<a href="#!">四</a>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
 			</li>
 		</ul>
 	</div>

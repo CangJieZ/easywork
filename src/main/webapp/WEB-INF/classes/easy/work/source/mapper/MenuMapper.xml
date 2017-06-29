@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="easy.work.source.module.rights.dao.MenuDao">
+	<resultMap id="BaseResultMap" type="easy.work.source.module.rights.pojo.Menu">
+		<id column="mid" property="mid" jdbcType="INTEGER" />
+		<result column="menu_name" property="menuName" jdbcType="VARCHAR" />
+		<result column="parent_id" property="parentId" jdbcType="INTEGER" />
+		<result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="parent_name" property="parentName" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 权限跟菜单列表查询 -->
+	<resultMap id="MenuData" type="easy.work.source.module.rights.pojo.MenuList">
+		<id column="mid" property="mid" jdbcType="INTEGER" />
+		<result column="menu_name" property="menuName" jdbcType="VARCHAR" />
+		<result column="parent_id" property="parentId" jdbcType="INTEGER" />
+		<result column="parent_name" property="parentName" jdbcType="VARCHAR" />
+		<collection column="mid" property="permissionModels"
+			ofType="easy.work.source.module.rights.pojo.Permission"
+			select="easy.work.source.module.rights.dao.PermissionDao.selectByMenuId" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		mid, menu_name, parent_id,parent_name, add_time,
+		modify_time
+	</sql>
+
+	<!-- 查询上级菜单(一级) -->
+	<select id="selectMenuTreeSuperior" resultMap="BaseResultMap">
+		select
+		mid,
+		menu_name,
+		parent_id,parent_name
+		from menu
+		where
+		parent_id = 0
+	</select>
+
+	<!-- 查询下级菜单(二级 三级) -->
+	<select id="selectMenuTreeSubordinate" resultMap="BaseResultMap">
+		select
+		mid,
+		menu_name,
+		parent_id,parent_name
+		from menu
+		where
+		parent_id &gt; 0;
+	</select>
+
+	<!-- 根据parent_id查询菜单列表 -->
+	<select id="selectByParentId" resultMap="BaseResultMap"
+		parameterType="Integer">
+		select
+		mid, menu_name,
+		parent_id
+		from menu
+		where
+		parent_id =
+		#{parentId,jdbcType=INTEGER}
+	</select>
+
+	<!-- 根据pid查询菜单列表 -->
+	<select id="selectByPid" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		mid, menu_name,
+		parent_id
+		from menu
+		where
+		mid =
+		{select mid from menu_permission
+		where pid = #{pid,jdbcType=INTEGER}
+	</select>
+
+	<!-- 根据pid list 查询所有菜单 -->
+	<select id="selectByPidList" resultMap="BaseResultMap"
+		parameterType="java.util.List">
+		select
+		mid, menu_name,
+		parent_id
+		from menu
+		where
+		mid in
+		(select mid from
+		menu_permission where pid in
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+		)
+	</select>
+
+	<!-- 根据pid list 查询所有菜单id -->
+	<select id="selectByPidForMids" resultType="java.lang.Integer"
+		parameterType="java.util.List">
+		select
+		mid
+		from menu
+		where
+		mid in
+		(select mid from menu_permission where
+		pid in
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+		)
+	</select>
+
+	<!-- 权限跟菜单列表查询 -->
+	<select id="selectMenuList" resultMap="MenuData"
+		parameterType="easy.work.source.module.rights.query.MenuPermissionQuery">
+		select
+		mid, menu_name,
+		parent_id,parent_name
+		from menu
+		<trim prefix="WHERE" suffixOverrides="and">
+			<if test="menuName != null and menuName != ''">
+				menu_name LIKE
+				CONCAT(CONCAT('%',#{menuName,jdbcType=VARCHAR}),'%') and
+			</if>
+			<if test="parentName != null and parentName != ''">
+				parent_name LIKE
+				CONCAT(CONCAT('%',#{parentName,jdbcType=VARCHAR}),'%') and
+			</if>
+		</trim>
+	</select>
+
+	<!-- 新增一条数据 -->
+	<insert id="insertSelective" parameterType="easy.work.source.module.rights.pojo.Menu">
+		insert into menu
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="mid != null">
+				mid,
+			</if>
+			<if test="menuName != null">
+				menu_name,
+			</if>
+			<if test="parentId != null">
+				parent_id,
+			</if>
+			<if test="addTime != null">
+				add_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="parentName != null">
+				parent_name,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="mid != null">
+				#{mid,jdbcType=INTEGER},
+			</if>
+			<if test="menuName != null">
+				#{menuName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentId != null">
+				#{parentId,jdbcType=INTEGER},
+			</if>
+			<if test="addTime != null">
+				#{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="parentName != null">
+				#{parentName,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 删除数据 -->
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from menu
+		where mid = #{mid,jdbcType=INTEGER}
+	</delete>
+
+	<!-- 批量删除menu -->
+	<delete id="deleteByMids" parameterType="java.util.List">
+		delete from menu
+		where mid in
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!-- 修改一条数据 -->
+	<update id="updateByPrimaryKeySelective" parameterType="easy.work.source.module.rights.pojo.Menu">
+		update menu
+		<set>
+			<if test="menuName != null">
+				menu_name = #{menuName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentId != null">
+				parent_id = #{parentId,jdbcType=INTEGER},
+			</if>
+			<if test="addTime != null">
+				add_time = #{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="parentName != null">
+				parent_name = #{parentName,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where mid = #{mid,jdbcType=INTEGER}
+	</update>
+
+</mapper>

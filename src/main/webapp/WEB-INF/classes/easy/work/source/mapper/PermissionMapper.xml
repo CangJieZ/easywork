@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="easy.work.source.module.rights.dao.PermissionDao">
+	<resultMap id="BaseResultMap" type="easy.work.source.module.rights.pojo.Permission">
+		<id column="pid" property="pid" jdbcType="INTEGER" />
+		<result column="permission_name" property="permissionName"
+			jdbcType="VARCHAR" />
+		<result column="permission_ackey" property="permissionAckey"
+			jdbcType="VARCHAR" />
+		<result column="permission_url" property="permissionUrl"
+			jdbcType="VARCHAR" />
+		<result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="menu_name" property="menuName" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		pid, permission_name, permission_ackey, permission_url,
+		add_time,
+		modify_time,menu_name
+	</sql>
+
+	<!-- 批量删除 -->
+	<delete id="deleteByIds">
+		delete from permission
+		where pid in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!-- 新增数据 -->
+	<insert id="insertSelective" parameterType="easy.work.source.module.rights.pojo.Permission"
+		useGeneratedKeys="true" keyProperty="pid">
+		insert into permission
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="pid != null">
+				pid,
+			</if>
+			<if test="permissionName != null">
+				permission_name,
+			</if>
+			<if test="permissionAckey != null">
+				permission_ackey,
+			</if>
+			<if test="permissionUrl != null">
+				permission_url,
+			</if>
+			<if test="addTime != null">
+				add_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="pid != null">
+				#{pid,jdbcType=INTEGER},
+			</if>
+			<if test="permissionName != null">
+				#{permissionName,jdbcType=VARCHAR},
+			</if>
+			<if test="permissionAckey != null">
+				#{permissionAckey,jdbcType=VARCHAR},
+			</if>
+			<if test="permissionUrl != null">
+				#{permissionUrl,jdbcType=VARCHAR},
+			</if>
+			<if test="addTime != null">
+				#{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 根据Role rid查询这个角色下的这个菜单下拥有的权限 -->
+	<select id="selectPermissionByRidAndMid" resultMap="BaseResultMap">
+		select p.*
+		FROM menu_permission mp,permission p
+		WHERE mp.pid = p.pid
+		and mp.mid =
+		#{1} and p.pid in (
+		SELECT DISTINCT rp.pid FROM role_premission rp
+		WHERE rp.rid = #{0} and rp.flag = 0)
+	</select>
+
+	<!-- 根据Role pid查询这个角色下的这个菜单下拥有的权限 -->
+	<select id="selectPermissionByRidAndPid" resultMap="BaseResultMap">
+		select p.*
+		FROM
+		role_premission rp,menu_permission
+		mp,permission p
+		WHERE rp.pid =
+		mp.pid and mp.pid =
+		p.pid
+		and rp.rid = #{0}
+		and mp.pid = #{1}
+	</select>
+
+	<!-- 查询所有权限 -->
+	<select id="selectAll" resultMap="BaseResultMap"
+		parameterType="easy.work.source.module.rights.query.PermissionQuery">
+		select
+		p.pid, p.permission_name,
+		p.permission_ackey,p.permission_url,m.menu_name
+		from
+		permission
+		p,menu_permission mp,menu m
+		<trim prefix="WHERE" suffixOverrides="and">
+			p.pid = mp.pid and mp.mid = m.mid and
+			<if test='permissionName != null and permissionName != ""'>
+				p.permission_name LIKE
+				CONCAT(CONCAT('%',#{permissionName,jdbcType=VARCHAR}),'%') and
+			</if>
+			<if test='menuName != null and menuName != ""'>
+				m.menu_name=
+				#{menuName,jdbcType=VARCHAR} and
+			</if>
+			<if test='permissionUrl != null and permissionUrl != ""'>
+				p.permission_url LIKE
+				CONCAT(CONCAT('%',#{permissionUrl,jdbcType=VARCHAR}),'%') and
+			</if>
+		</trim>
+	</select>
+
+	<!-- 根据menu id查询 -->
+	<select id="selectByMenuId" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		pid, permission_name, permission_ackey,
+		permission_url
+		from permission
+		where pid IN
+		(select pid from
+		menu_permission
+		where mid = #{mid,jdbcType=INTEGER})
+	</select>
+
+	<!-- 根据Role rid查询 -->
+	<select id="selectByRid" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		pid, permission_name, permission_ackey,
+		permission_url
+		from
+		permission
+		where pid IN
+		(select pid from
+		role_premission
+		where
+		rid = #{rid,jdbcType=INTEGER} and flag=0)
+	</select>
+
+	<!-- 根据user id查询 -->
+	<select id="selectByUserId" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		pid, permission_name, permission_ackey,
+		permission_url
+		from
+		permission
+		where pid IN
+		(select rp.pid from role r,
+		user_role ur,
+		role_premission rp
+		where
+		ur.uid = #{uid,jdbcType=INTEGER}
+		and ur.rid = r.rid
+		and r.rid = rp.rid)
+	</select>
+
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		<!-- WARNING - @mbggenerated This element is automatically generated by 
+			MyBatis Generator, do not modify. This element was generated on Fri May 12 
+			13:21:18 CST 2017. -->
+		select
+		<include refid="Base_Column_List" />
+		from permission
+		where pid = #{pid,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		<!-- WARNING - @mbggenerated This element is automatically generated by 
+			MyBatis Generator, do not modify. This element was generated on Fri May 12 
+			13:21:18 CST 2017. -->
+		delete from permission
+		where pid = #{pid,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="easy.work.source.module.rights.pojo.Permission">
+		<!-- WARNING - @mbggenerated This element is automatically generated by 
+			MyBatis Generator, do not modify. This element was generated on Fri May 12 
+			13:21:18 CST 2017. -->
+		insert into permission (pid, permission_name, permission_ackey,
+		permission_url, add_time, modify_time
+		)
+		values (#{pid,jdbcType=INTEGER},
+		#{permissionName,jdbcType=VARCHAR},
+		#{permissionAckey,jdbcType=VARCHAR},
+		#{permissionUrl,jdbcType=VARCHAR}, #{addTime,jdbcType=TIMESTAMP},
+		#{modifyTime,jdbcType=TIMESTAMP}
+		)
+	</insert>
+
+	<update id="updateByPrimaryKeySelective" parameterType="easy.work.source.module.rights.pojo.Permission">
+		<!-- WARNING - @mbggenerated This element is automatically generated by 
+			MyBatis Generator, do not modify. This element was generated on Fri May 12 
+			13:21:18 CST 2017. -->
+		update permission
+		<set>
+			<if test="permissionName != null">
+				permission_name = #{permissionName,jdbcType=VARCHAR},
+			</if>
+			<if test="permissionAckey != null">
+				permission_ackey = #{permissionAckey,jdbcType=VARCHAR},
+			</if>
+			<if test="permissionUrl != null">
+				permission_url = #{permissionUrl,jdbcType=VARCHAR},
+			</if>
+			<if test="addTime != null">
+				add_time = #{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where pid = #{pid,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="easy.work.source.module.rights.pojo.Permission">
+		<!-- WARNING - @mbggenerated This element is automatically generated by 
+			MyBatis Generator, do not modify. This element was generated on Fri May 12 
+			13:21:18 CST 2017. -->
+		update permission
+		set permission_name =
+		#{permissionName,jdbcType=VARCHAR},
+		permission_ackey =
+		#{permissionAckey,jdbcType=VARCHAR},
+		permission_url =
+		#{permissionUrl,jdbcType=VARCHAR},
+		add_time =
+		#{addTime,jdbcType=TIMESTAMP},
+		modify_time =
+		#{modifyTime,jdbcType=TIMESTAMP}
+		where pid = #{pid,jdbcType=INTEGER}
+	</update>
+</mapper>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="easy.work.source.module.rights.dao.UserDao">
+	<resultMap id="BaseResultMap" type="easy.work.source.module.rights.pojo.BackUserPojo">
+		<id column="uid" property="uid" jdbcType="INTEGER" />
+		<result column="user_name" property="userName" jdbcType="VARCHAR" />
+		<result column="user_account" property="userAccount" jdbcType="VARCHAR" />
+		<result column="user_pwd" property="userPwd" jdbcType="VARCHAR" />
+		<result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="rid" property="rid" jdbcType="INTEGER" />
+		<result column="role_name" property="roleName" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 修改用户密码 -->
+	<update id="updateByPwd" parameterType="easy.work.source.module.rights.pojo.BackUserPojo">
+		update back_user
+		set
+		user_pwd = #{userPwd,jdbcType=VARCHAR}
+		where uid =
+		#{uid,jdbcType=INTEGER}
+	</update>
+
+	<!-- 角色和用户关联查询 返回用户对应的角色名称 -->
+	<resultMap id="UserRole" type="easy.work.source.module.rights.pojo.UserRolePojo">
+		<id column="uid" property="uid" jdbcType="INTEGER" />
+		<result column="user_name" property="userName" jdbcType="VARCHAR" />
+		<result column="user_account" property="userAccount" jdbcType="VARCHAR" />
+		<result column="user_pwd" property="userPwd" jdbcType="VARCHAR" />
+		<result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="rid" property="rid" jdbcType="INTEGER" />
+		<result column="role_name" property="roleName" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		uid, user_name, user_account, user_pwd, add_time,
+		modify_time
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from back_user
+		where uid = #{uid,jdbcType=INTEGER}
+	</select>
+
+	<!-- 通过账号查询 -->
+	<select id="findByAccount" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+			a.uid, 
+			a.user_name, 
+			a.user_account, 
+			a.user_pwd, 
+			a.add_time,
+			a.modify_time,
+			c.rid,
+			c.role_name
+		from back_user a,user_role b ,role c
+		
+		where user_account = #{userAccount,jdbcType=VARCHAR}
+		
+		and b.rid = c.rid and b.uid = a.uid
+	</select>
+
+	<!-- 角色用户关联表查询用户 -->
+	<select id="selectFromRole" resultMap="UserRole"
+		parameterType="easy.work.source.module.rights.query.RoleQuery">
+		select
+		bu.uid, bu.user_name, bu.user_account, bu.user_pwd,
+		bu.add_time,r.role_name,r.rid
+		from back_user bu,user_role ur,role r
+		<trim prefix="WHERE" suffixOverrides="and">
+			bu.uid = ur.uid and ur.rid = r.rid and
+			<if test="userName != null and userName != ''">
+				bu.user_name= #{userName,jdbcType=VARCHAR} and
+			</if>
+			<if test="rid != null">
+				ur.rid= #{rid,jdbcType=INTEGER} and
+			</if>
+			<if test="uid != null">
+				bu.uid= #{uid,jdbcType=INTEGER} and
+			</if>
+			<if test="roleName != null">
+				r.rid= #{roleName,jdbcType=VARCHAR} and
+			</if>
+		</trim>
+	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		back_user
+		where uid = #{uid,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="easy.work.source.module.rights.pojo.BackUserPojo">
+		insert into back_user (uid,
+		user_name, user_account,
+		user_pwd, add_time, modify_time
+		)
+		values
+		(#{uid,jdbcType=INTEGER}, #{userName,jdbcType=VARCHAR},
+		#{userAccount,jdbcType=VARCHAR},
+		#{userPwd,jdbcType=VARCHAR},
+		#{addTime,jdbcType=TIMESTAMP}, #{modifyTime,jdbcType=TIMESTAMP}
+		)
+	</insert>
+
+	<!-- 新增一条数据 keyProperty="uid"表示返回主键 在事务中同样能起作用 -->
+	<insert id="insertSelective" parameterType="easy.work.source.module.rights.pojo.BackUserPojo"
+		useGeneratedKeys="true" keyProperty="uid">
+		insert into back_user
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="uid != null">
+				uid,
+			</if>
+			<if test="userName != null">
+				user_name,
+			</if>
+			<if test="userAccount != null">
+				user_account,
+			</if>
+			<if test="userPwd != null">
+				user_pwd,
+			</if>
+			<if test="addTime != null">
+				add_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="uid != null">
+				#{uid,jdbcType=INTEGER},
+			</if>
+			<if test="userName != null">
+				#{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="userAccount != null">
+				#{userAccount,jdbcType=VARCHAR},
+			</if>
+			<if test="userPwd != null">
+				#{userPwd,jdbcType=VARCHAR},
+			</if>
+			<if test="addTime != null">
+				#{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="easy.work.source.module.rights.pojo.BackUserPojo">
+		update back_user
+		<set>
+			<if test="userName != null">
+				user_name = #{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="userAccount != null">
+				user_account = #{userAccount,jdbcType=VARCHAR},
+			</if>
+			<if test="userPwd != null">
+				user_pwd = #{userPwd,jdbcType=VARCHAR},
+			</if>
+			<if test="addTime != null">
+				add_time = #{addTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where uid = #{uid,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="easy.work.source.module.rights.pojo.BackUserPojo">
+		update back_user
+		set user_name = #{userName,jdbcType=VARCHAR},
+		user_account =
+		#{userAccount,jdbcType=VARCHAR},
+		user_pwd =
+		#{userPwd,jdbcType=VARCHAR},
+		add_time = #{addTime,jdbcType=TIMESTAMP},
+		modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+		where uid =
+		#{uid,jdbcType=INTEGER}
+	</update>
+</mapper>
